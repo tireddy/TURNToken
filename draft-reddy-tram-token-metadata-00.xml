@@ -32,6 +32,42 @@
       </address>
     </author>
 
+    <author fullname="Brandon Williams" initials="B." surname="Williams">
+      <organization>Akamai, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>8 Cambridge Center</street>
+
+          <city>Cambridge, MA</city>
+
+          <code>02142</code>
+
+          <country>USA</country>
+        </postal>
+
+        <email>brandon.williams@akamai.com</email>
+      </address>
+    </author>
+
+    <author fullname="Justin Uberti" initials="J." surname="Uberti">
+      <organization>Google</organization>
+
+      <address>
+        <postal>
+          <street>747 6th Ave S</street>
+
+          <street>Kirkland, WA</street>
+
+          <code>98033</code>
+
+          <country>USA</country>
+        </postal>
+
+        <email>justin@uberti.name</email>
+      </address>
+    </author>
+
     <date />
 
     <workgroup>TRAM</workgroup>
@@ -40,10 +76,7 @@
       <t>The operator of the TURN server might want to have fine grained
       control on the clients usage of the server resources for providing
       features such limiting the bandwith usage, number of allocations and so
-      on. However, when using OAuth2.0 based third party authorization for
-      accessing the TURN server resources, the operator lacks flexibility in
-      instrumenting any policy control due to opaque nature of the access
-      token. This document proposes a generic mechanism for the operator to
+      on. This document proposes a generic mechanism for the operator to
       introspect the access token to retrieve any policy restrictions imposed
       by the authorization server on the TURN server resources assigned to the
       client.</t>
@@ -65,10 +98,10 @@
       &lsquo;Assertion&rsquo;) authorized by a Authorization Server to access
       a given TURN server. On receiving such a token, the TURN server
       validates the token to grant or reject access to the session resources.
-      However, having a opaque token doesn't provide any control for the
-      operator of the TURN server to instrument any policies for the server's
-      resource usages. This specification proposes using the mechansim defined
-      in <xref target="I-D.ietf-oauth-introspection"></xref> to query OAuth2.0
+      However, having a token doesn't provide any control for the operator of
+      the TURN server to instrument any policies for the server's resource
+      usages. This specification proposes using the mechanism defined in <xref
+      target="I-D.ietf-oauth-introspection"></xref> to query OAuth2.0
       authorization server to determine additional meta-information regarding
       the server's resource usage for the given token.</t>
 
@@ -102,7 +135,7 @@
     <section anchor="introspect_req" title="Introspecton Request">
       <t>For introspecting the meta-information associated with the access
       token, the TURN server shall execute the procedures defined in Section
-      2.1 of <xref target="I-D.ietf-oauth-introspection"></xref>. </t>
+      2.1 of <xref target="I-D.ietf-oauth-introspection"></xref>.</t>
 
       <figure>
         <artwork><![CDATA[
@@ -121,12 +154,13 @@ Content-Type: application/x-www-form-urlencoded
 
       <t>token REQUIRED. This parameter is defined in <xref
       target="I-D.ietf-oauth-introspection"></xref>. The access token is
-      obtained as expalined in Section 6.2 of <xref
-      target="I-D.ietf-tram-turn-third-party-authz"></xref>.</t>
+      conveyed by the TURN client to the TURN server as discussed in Section
+      3.1 of <xref target="I-D.ietf-tram-turn-third-party-authz"></xref>.</t>
 
       <t>token_type_hint OPTIONAL. This parameter is defined in <xref
       target="I-D.ietf-oauth-introspection"></xref>. The token type is set to
-      &lsquo;access_token&rsquo; <xref target="RFC6819"></xref>.</t>
+      &lsquo;access_token&rsquo; defined in <xref
+      target="RFC7009"></xref>.</t>
 
       <t>Following is a non-normative example request showcasing the
       introspection request for a given access token.</t>
@@ -165,7 +199,7 @@ Content-Type: application/json
       </figure>
 
       <t>active REQUIRED. This parameter is defined in <xref
-      target="I-D.ietf-oauth-introspection"></xref>. </t>
+      target="I-D.ietf-oauth-introspection"></xref>.</t>
 
       <t>scope OPTIONAL. This parameter is defined in <xref
       target="I-D.ietf-oauth-introspection"></xref>. For this specification,
@@ -209,23 +243,46 @@ Content-Type: application/json
     </section>
 
     <section anchor="introspection_endpoint" title="INTROSPECTION_ENDPOINT">
-      <t>TBD</t>
-
       <t>This attribute is used by the TURN client to inform the TURN server
       about the FQDN of introspection endpoint. This attribute value contains
-      the FQDN of introspection endpoint. TURN server resolves the FQDN and
-      establishes secure connection with the introspection endpoint to learn
-      the metadata associated with the token. The INTROSPECTION_ENDPOINT
-      attribute is a comprehension-optional attribute (see Section 15 from
-      <xref target="RFC5389"></xref>).</t>
+      the FQDN of introspection endpoint. The WebRTC service provider may have
+      multiple WebRTC servers for load balancing, the TURN client MUST provide
+      the WebRTC server name to the TURN server so that it can query the
+      WebRTC server to learn the metadata associated with the token. TURN
+      server resolves the FQDN conveyed in this attribute and establishes
+      secure connection with the introspection endpoint to learn the metadata
+      associated with the token. The INTROSPECTION_ENDPOINT attribute is a
+      comprehension-optional attribute (see Section 15 from <xref
+      target="RFC5389"></xref>).</t>
+
+      <t>TBD: An alternate approach is to convey the FQDN in the token
+      itself.</t>
     </section>
 
     <section anchor="revoke" title="Token Revocation">
-      <t>TODO</t>
-
       <t>The Introspection Endpoint can inform the TURN server to revoke the
       access token after the call is terminated using HTTP/2 server push
       mechanism.</t>
+    </section>
+
+    <section anchor="alternate" title="Alternate approach">
+      <t>TBD:</t>
+
+      <t>Another approach, not discussed in this document, is a self-
+      contained token where the metadata is contained within the token itself.
+      This approach has the benefit of avoiding a protocol between the TURN
+      server and the introspection endpoint. However, this approach has the
+      following drawbacks: </t>
+
+      <t><list style="symbols">
+          <t>Needs a large TURN packet to accommodate the token.</t>
+
+          <t>Token revocation cannot be supported.</t>
+
+          <t>Token needs versioning for future enhancements, and the
+          introspection endpoint needs a mechanism to learn the token version
+          supported by the TURN server.</t>
+        </list></t>
     </section>
 
     <section anchor="security" title="Security Considerations">
@@ -335,11 +392,9 @@ Content-Type: application/json
     </references>
 
     <references title="Informative References">
-      <?rfc include="reference.RFC.6819"?>
-
       <?rfc include="reference.RFC.7159"?>
 
-      <?rfc include="reference.RFC.6749"?>
+      <?rfc include="reference.RFC.7009"?>
 
       <?rfc include="reference.RFC.5785"?>
 
