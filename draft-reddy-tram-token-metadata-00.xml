@@ -75,8 +75,8 @@
     <abstract>
       <t>The operator of the TURN server might want to have fine grained
       control on the clients usage of the server resources for providing
-      features such limiting the bandwith usage, number of allocations and so
-      on. This document proposes a generic mechanism for the operator to
+      features such as limiting the bandwith usage, number of allocations and
+      so on. This document proposes a generic mechanism for the operator to
       introspect the access token to retrieve any policy restrictions imposed
       by the authorization server on the TURN server resources assigned to the
       client.</t>
@@ -132,7 +132,7 @@
       endpoint could be a WebRTC server.</t>
     </section>
 
-    <section anchor="introspect_req" title="Introspecton Request">
+    <section anchor="introspect_req" title="Introspection Request">
       <t>For introspecting the meta-information associated with the access
       token, the TURN server shall execute the procedures defined in Section
       2.1 of <xref target="I-D.ietf-oauth-introspection"></xref>.</t>
@@ -177,8 +177,8 @@ token=2YotnFZFEjr1zCsicMWpAA&token_type_hint=access_token
       </figure>
     </section>
 
-    <section anchor="introspect_resp" title="Introspecton Response">
-      <t>The OAuth2.0 introspection endpoint on recognising the token,
+    <section anchor="introspect_resp" title="Introspection Response">
+      <t>The OAuth2.0 introspection endpoint on recognizing the token,
       responds with a JSON object <xref target="RFC7159"></xref> in
       &ldquo;application/json&rdquo; format with the following members.</t>
 
@@ -272,7 +272,7 @@ Content-Type: application/json
       contained token where the metadata is contained within the token itself.
       This approach has the benefit of avoiding a protocol between the TURN
       server and the introspection endpoint. However, this approach has the
-      following drawbacks: </t>
+      following drawbacks:</t>
 
       <t><list style="symbols">
           <t>Needs a large TURN packet to accommodate the token.</t>
