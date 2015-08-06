@@ -32,6 +32,26 @@
       </address>
     </author>
 
+    <author fullname="Dan Wing" initials="D." surname="Wing">
+      <organization abbrev="Cisco">Cisco Systems, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>170 West Tasman Drive</street>
+
+          <city>San Jose</city>
+
+          <region>California</region>
+
+          <code>95134</code>
+
+          <country>USA</country>
+        </postal>
+
+        <email>dwing@cisco.com</email>
+      </address>
+    </author>
+
     <author fullname="Brandon Williams" initials="B." surname="Williams">
       <organization>Akamai, Inc.</organization>
 
@@ -85,13 +105,12 @@
 
   <middle>
     <section anchor="introduction" title="Introduction">
-      <t>TURN protocol <xref target="RFC5766"></xref> is used to setup a relay
-      service (via a TURN Server) to exchange traffic (real time media, data)
-      between peers when direct peer-to-peer connection is not otherwise
+      <t>The TURN protocol <xref target="RFC5766"></xref> is used to setup a
+      relay service (via a TURN Server) to exchange traffic (real time media,
+      data) between peers when direct peer-to-peer connection is not otherwise
       possible. Due to the costs associated with operating a relay service, it
-      is not unexpected that the operator of such a service might want to
-      exercise control on servers resource usages. Few examples of control
-      might be to limit the number of allocations, bandwidth, etc.</t>
+      is important to constrain resource usage. For example, the operator
+      might want to limit the number of allocations or bandwidth.</t>
 
       <t><xref target="I-D.ietf-tram-turn-third-party-authz"></xref> allows
       clients to obtain OAuth2.0 access token (of type
@@ -99,11 +118,11 @@
       a given TURN server. On receiving such a token, the TURN server
       validates the token to grant or reject access to the session resources.
       However, having a token doesn't provide any control for the operator of
-      the TURN server to instrument any policies for the server's resource
-      usages. This specification proposes using the mechanism defined in <xref
+      the TURN server restrict the server's resources. This specification
+      proposes using the mechanism defined in <xref
       target="I-D.ietf-oauth-introspection"></xref> to query OAuth2.0
-      authorization server to determine additional meta-information regarding
-      the server's resource usage for the given token.</t>
+      authorization server to determine resource restrictions for this
+      token.</t>
 
       <t>The rest of the document is organized as follows. <xref
       target="introspect_req"></xref> provides procedure for querying the
@@ -124,7 +143,7 @@
       <t>Access Token: OAuth 2.0 access token.</t>
 
       <t>Token Introspection: The act of inquiring about the current state of
-      an oath 2.0 token through use of the network protocol defined in this
+      an OAuth 2.0 token through use of the network protocol defined in this
       document.</t>
 
       <t>Introspection Endpoint: The OAuth 2.0 endpoint through which the
@@ -139,41 +158,48 @@
 
       <figure>
         <artwork><![CDATA[
-POST {scheme}://{host}:{port}/.well-known/introspection
-Accept: application/json
-Content-Type: application/x-www-form-urlencoded
-{
-    "token" : "string" 
-    "token_type_hint" : "string"
-}
+  POST {scheme}://{host}:{port}/.well-known/introspection
+  Accept: application/json
+  Content-Type: application/x-www-form-urlencoded
 
+  {
+      "token" : "string" 
+      "token_type_hint" : "string"
+  }
 ]]></artwork>
       </figure>
 
-      <t></t>
+      <t><list hangIndent="5" style="hanging">
+          <t>token REQUIRED. This parameter is defined in <xref
+          target="I-D.ietf-oauth-introspection"></xref>. The access token is
+          conveyed by the TURN client to the TURN server as discussed in
+          Section 3.1 of <xref
+          target="I-D.ietf-tram-turn-third-party-authz"></xref>.</t>
 
-      <t>token REQUIRED. This parameter is defined in <xref
-      target="I-D.ietf-oauth-introspection"></xref>. The access token is
-      conveyed by the TURN client to the TURN server as discussed in Section
-      3.1 of <xref target="I-D.ietf-tram-turn-third-party-authz"></xref>.</t>
-
-      <t>token_type_hint OPTIONAL. This parameter is defined in <xref
-      target="I-D.ietf-oauth-introspection"></xref>. The token type is set to
-      &lsquo;access_token&rsquo; defined in <xref
-      target="RFC7009"></xref>.</t>
+          <t>token_type_hint OPTIONAL. This parameter is defined in <xref
+          target="I-D.ietf-oauth-introspection"></xref>. The token type MUST
+          be set to &lsquo;access_token&rsquo; defined in <xref
+          target="RFC7009"></xref>. If the token type is not
+          &lsquo;access_token&rsquo;, the server rejects the request with a
+          400 (Bad Request) error.</t>
+        </list></t>
 
       <t>Following is a non-normative example request showcasing the
       introspection request for a given access token.</t>
 
       <figure>
         <artwork><![CDATA[
-POST /introspect HTTP/1.1
-Host: server.example.com
-Accept: application/json
-Content-Type: application/x-www-form-urlencoded
+  POST /introspect HTTP/1.1
+  Host: server.example.com
+  Accept: application/json
+  Content-Type: application/x-www-form-urlencoded
+  
+  {
 
-token=2YotnFZFEjr1zCsicMWpAA&token_type_hint=access_token
-]]></artwork>
+     "token" : "2YotnFZFEjr1zCsicMWpAA"
+     "token_type_hint" : "access_token"
+
+  }]]></artwork>
       </figure>
     </section>
 
@@ -184,41 +210,45 @@ token=2YotnFZFEjr1zCsicMWpAA&token_type_hint=access_token
 
       <figure>
         <artwork><![CDATA[
-HTTP/1.1 200 OK
-Content-Type: application/json
-{
-"active": "boolean",
-"scope": "string",
-"max_upstream_bandwidth" : "unsigned integer",
-"max_downstream_bandwidth" : "unsigned integer",
-"max_allocations": "unsigned integer",
-"lifetime": "unsigned integer",
-}
-
+  HTTP/1.1 200 OK
+  Content-Type: application/json
+ 
+  {
+  "active" : "boolean",
+  "scope" : "string",
+  "max_upstream_bandwidth" : "unsigned integer",
+  "max_downstream_bandwidth" : "unsigned integer",
+  "max_allocations" : "unsigned integer",
+  "lifetime" : "unsigned integer",
+  }
 ]]></artwork>
       </figure>
 
-      <t>active REQUIRED. This parameter is defined in <xref
-      target="I-D.ietf-oauth-introspection"></xref>.</t>
+      <t><list hangIndent="5" style="hanging">
+          <t>active REQUIRED. This parameter is defined in <xref
+          target="I-D.ietf-oauth-introspection"></xref>.</t>
 
-      <t>scope OPTIONAL. This parameter is defined in <xref
-      target="I-D.ietf-oauth-introspection"></xref>. For this specification,
-      the scope MUST be 'stun'.</t>
+          <t>scope OPTIONAL. This parameter is defined in <xref
+          target="I-D.ietf-oauth-introspection"></xref>. For this
+          specification, the scope MUST be 'stun'.</t>
 
-      <t>max_upstream_bandwidth REQUIRED. The value of this parameter is an 64
-      bit unsigned integer that represents the maximum upstream bandwidth
-      permitted for the token in kilobits per second (1 kilobit = 1024
-      bits).</t>
+          <t>max_upstream_bandwidth REQUIRED. The value of this parameter is
+          an 64 bit unsigned integer that represents the maximum upstream
+          bandwidth permitted for the token in kilobits per second (1 kilobit
+          = 1024 bits).</t>
 
-      <t>max_downstream bandwidth REQUIRED. The value of this parameter is an
-      64 bit unsigned integer that represents the maximum downstream bandwidth
-      permitted for the token in kilobits per second (1 kilobit = 1024
-      bits).</t>
+          <t>max_downstream bandwidth REQUIRED. The value of this parameter is
+          an 64 bit unsigned integer that represents the maximum downstream
+          bandwidth permitted for the token in kilobits per second (1 kilobit
+          = 1024 bits).</t>
 
-      <t>max_allocations: REQUIRED. 16 bit unsigned integer defining maximum
-      number of allocations that is allowable for the given access token.</t>
+          <t>max_allocations: REQUIRED. 16 bit unsigned integer defining
+          maximum number of allocations that is allowable for the given access
+          token.</t>
 
-      <t>lifetime: REQUIRED: The lifetime of the access token, in seconds.</t>
+          <t>lifetime: REQUIRED: The lifetime of the access token, in
+          seconds.</t>
+        </list></t>
 
       <t>NOTE: Future specifications are allowed to define further top-level
       members as mandated by the use-cases.</t>
@@ -227,42 +257,32 @@ Content-Type: application/json
 
       <figure>
         <artwork><![CDATA[
-HTTP/1.1 200 OK
-Content-Type: application/json
+  HTTP/1.1 200 OK
+  Content-Type: application/json
 
-{
-"active": true,
-"scope": "stun",
-"upstream-bandwidth" : 4096,
-"downstream-bandwidth" : 4096,
-"max-allocations": 1,
-}
-
+  {
+  "active" : true,
+  "scope" : "stun",
+  "upstream-bandwidth" : 4096,
+  "downstream-bandwidth" : 4096,
+  "max-allocations" : 1,
+  }
 ]]></artwork>
       </figure>
     </section>
 
-    <section anchor="introspection_endpoint" title="INTROSPECTION_ENDPOINT">
+    <section anchor="introspection_endpoint"
+             title="INTROSPECTION_ENDPOINT Attribute">
       <t>This attribute is used by the TURN client to inform the TURN server
-      about the FQDN of introspection endpoint. This attribute value contains
-      the FQDN of introspection endpoint. The WebRTC service provider may have
-      multiple WebRTC servers for load balancing, the TURN client MUST provide
-      the WebRTC server name to the TURN server so that it can query the
-      WebRTC server to learn the metadata associated with the token. TURN
-      server resolves the FQDN conveyed in this attribute and establishes
-      secure connection with the introspection endpoint to learn the metadata
-      associated with the token. The INTROSPECTION_ENDPOINT attribute is a
-      comprehension-optional attribute (see Section 15 from <xref
-      target="RFC5389"></xref>).</t>
+      the FQDN of introspection server.</t>
+
+      <t>The TURN server establishes an HTTPS connection with the indicated
+      server and sends the above-described communications to that server. The
+      INTROSPECTION_ENDPOINT attribute is a comprehension-optional attribute
+      (see Section 15 from <xref target="RFC5389"></xref>).</t>
 
       <t>TBD: An alternate approach is to convey the FQDN in the token
       itself.</t>
-    </section>
-
-    <section anchor="revoke" title="Token Revocation">
-      <t>The Introspection Endpoint can inform the TURN server to revoke the
-      access token after the call is terminated using HTTP/2 server push
-      mechanism.</t>
     </section>
 
     <section anchor="alternate" title="Alternate approach">
@@ -277,8 +297,6 @@ Content-Type: application/json
       <t><list style="symbols">
           <t>Needs a large TURN packet to accommodate the token.</t>
 
-          <t>Token revocation cannot be supported.</t>
-
           <t>Token needs versioning for future enhancements, and the
           introspection endpoint needs a mechanism to learn the token version
           supported by the TURN server.</t>
@@ -286,12 +304,9 @@ Content-Type: application/json
     </section>
 
     <section anchor="security" title="Security Considerations">
-      <t>The TURN server and Introspection Endpoint MUST choose to use REST
-      API over HTTPS to determine the set of metadata for a given token. HTTPS
-      MUST be used for data confidentiality and TLS based on client
-      certificate MUST be used for mutual authentication. Security and Privacy
-      considerations in <xref target="I-D.ietf-oauth-introspection"></xref>
-      are to be taken into account.</t>
+      <t>The Security Considerations and Privacy Considerations of <xref
+      target="I-D.ietf-oauth-introspection"></xref> apply to this
+      document.</t>
     </section>
 
     <section anchor="iana" title="IANA Considerations">
