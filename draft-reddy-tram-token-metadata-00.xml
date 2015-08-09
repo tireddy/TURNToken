@@ -147,8 +147,8 @@
       document.</t>
 
       <t>Introspection Endpoint: The OAuth 2.0 endpoint through which the
-      token introspection operation is accomplished. The introspection
-      endpoint could be a WebRTC server.</t>
+      token introspection operation is accomplished. The Introspection
+      Endpoint could be a WebRTC server.</t>
     </section>
 
     <section anchor="introspect_req" title="Introspection Request">
@@ -204,7 +204,7 @@
     </section>
 
     <section anchor="introspect_resp" title="Introspection Response">
-      <t>The OAuth2.0 introspection endpoint on recognizing the token,
+      <t>The OAuth2.0 Introspection Endpoint on recognizing the token,
       responds with a JSON object <xref target="RFC7159"></xref> in
       &ldquo;application/json&rdquo; format with the following members.</t>
 
@@ -274,7 +274,7 @@
     <section anchor="introspection_endpoint"
              title="INTROSPECTION_ENDPOINT Attribute">
       <t>This attribute is used by the TURN client to inform the TURN server
-      the FQDN of introspection server.</t>
+      the FQDN of Introspection Endpoint.</t>
 
       <t>The TURN server establishes an HTTPS connection with the indicated
       server and sends the above-described communications to that server. The
@@ -285,21 +285,40 @@
       itself.</t>
     </section>
 
+    <section anchor="revoke" title="Notifications from Introspection Endpoint">
+      <t>Introspection Endpoint can send unsolicited responses to notify
+      updates to the metadata associated with the token to the TURN server
+      using HTTP/2 server push mechanism. Examples where such notifications
+      are desired are:</t>
+
+      <t><list style="symbols">
+          <t>The Introspection Endpoint can signal the TURN server to revoke
+          the access token after the call is terminated by setting lifetime to
+          zero.</t>
+
+          <t>When the call switches from audio to video, the Introspection
+          Endpoint notifies the increased bandwidth to the TURN server.</t>
+        </list></t>
+    </section>
+
     <section anchor="alternate" title="Alternate approach">
       <t>TBD:</t>
 
       <t>Another approach, not discussed in this document, is a self-
       contained token where the metadata is contained within the token itself.
       This approach has the benefit of avoiding a protocol between the TURN
-      server and the introspection endpoint. However, this approach has the
+      server and the Introspection Endpoint. However, this approach has the
       following drawbacks:</t>
 
       <t><list style="symbols">
           <t>Needs a large TURN packet to accommodate the token.</t>
 
           <t>Token needs versioning for future enhancements, and the
-          introspection endpoint needs a mechanism to learn the token version
+          Introspection Endpoint needs a mechanism to learn the token version
           supported by the TURN server.</t>
+
+          <t>Introspection Endpoint cannot notify changes to the metadata
+          associated with the token to the TURN server.</t>
         </list></t>
     </section>
 
