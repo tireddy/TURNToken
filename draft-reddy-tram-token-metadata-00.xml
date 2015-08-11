@@ -70,24 +70,6 @@
       </address>
     </author>
 
-    <author fullname="Justin Uberti" initials="J." surname="Uberti">
-      <organization>Google</organization>
-
-      <address>
-        <postal>
-          <street>747 6th Ave S</street>
-
-          <street>Kirkland, WA</street>
-
-          <code>98033</code>
-
-          <country>USA</country>
-        </postal>
-
-        <email>justin@uberti.name</email>
-      </address>
-    </author>
-
     <date />
 
     <workgroup>TRAM</workgroup>
